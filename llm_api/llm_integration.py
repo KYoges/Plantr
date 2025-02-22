@@ -1,0 +1,208 @@
+from openai import OpenAI
+from pinecone.grpc import PineconeGRPC as Pinecone
+from pinecone import ServerlessSpec
+import requests
+from plant_req_api import get_plant_info 
+import time
+import re
+
+def process_plant_info(data):
+    abbreviations = {
+        'kingdom': 'K', 'phylum': 'P', 'class': 'C', 'order': 'O', 
+        'family': 'F', 'genus': 'G', 'species': 'S', 'scientificName': 'SciName', 'rank': 'Rank', 'status': 'Status'
+    }
+    processed_info = []
+    for record in data:
+        compact_record = []
+
+        for key, value in record.items():
+            if key in abbreviations:  
+                if value and value != 'None':  
+                    compact_record.append(f"{abbreviations[key]}: {value}")
+        processed_info.append(" | ".join(compact_record))
+    context = "\n".join(processed_info)
+
+    return context
+
+
+def parse_growth_stages(output):
+    stages = []
+    pattern = r"Growth Stage (\d+):\n- Name: ([\w\s]+)\n- Duration: ([\d\-\w\s]+)\n- Start Date: ([\d\-]+)\n- End Date: ([\d\-]+)\n- Task: ([\w\s,]+)"
+    matches = re.findall(pattern, output)
+    
+    for match in matches:
+        stage_number, name, duration, start_date, end_date, task = match
+        stages.append({
+            'name': name.strip(),
+            'duration': duration.strip(),
+            'start_date': start_date.strip(),
+            'end_date': end_date.strip(),
+            'task': task.strip()
+        })
+    
+    return stages
+
+client = OpenAI()
+
+predicted_plant = "Zea mays"
+df_info = get_plant_info(predicted_plant)
+
+context = process_plant_info(df_info)
+
+# PROMPT = f"""
+# You are an expert botanist specializing in the cultivation of various crops. Below is the summarized information about the plant species in question. Based on this context, provide detailed, practical advice for a farmer who wants to grow this specific plant. The farmer may ask questions about:
+
+# Growing Conditions: Temperature, climate zones, and seasonal considerations.
+# Ideal Soil Types: Preferred soil pH, drainage, and texture.
+# Watering: Best practices for watering frequency, amount, and methods.
+# Sunlight: The amount of light the plant requires, along with any shade considerations.
+# Pest Management: How to deal with common pests, diseases, and effective control methods.
+# Plant Care: Any other maintenance tips like pruning, support, or fertilization needs.
+# Harvesting: Guidelines for the optimal time and methods for harvesting the plant.
+# Provide clear, actionable advice for a farmer in each of these areas based on the plant's requirements and your botanical expertise.
+
+# If the farmer asks questions unrelated to the plant, kindly inform them that only plant-related questions can be addressed.
+
+# Context: {context}
+# """
+
+start_date = '2025-02-22'
+PROMPT = f"""
+Prompt:
+
+"You are a crop management assistant. Given the user's planting date and crop type, generate a detailed crop growth timeline. For each growth stage, provide:
+
+The name of the growth stage (e.g., 'Seed Planting', 'Germination', 'Flowering', etc.).
+The duration of the stage (e.g., '7-10 days', '30-45 days').
+The start date of the stage (calculated from the user's planting date).
+The end date of the stage (calculated from the duration).
+A brief description of the activity that happens during the stage (e.g., 'Plant the seeds in well-drained soil', 'Water regularly', 'Harvest when ripe', etc.).
+The frequency of any repetitive tasks (e.g., watering, fertilizing) during the stage (e.g., "every 2 days", "weekly", "every 3 days").
+The user is planting {predicted_plant} on {start_date}. Provide the timeline for this crop in the following format:
+
+yaml
+Growth Stage 1:
+- Name: [name]
+- Duration: [duration]
+- Start Date: [start_date]
+- End Date: [end_date]
+- Task: [description]
+- Frequency: [watering/fertilizing frequency, if any]
+
+Growth Stage 2:
+- Name: [name]
+- Duration: [duration]
+- Start Date: [start_date]
+- End Date: [end_date]
+- Task: [description]
+- Frequency: [watering/fertilizing frequency, if any]
+
+...
+Example Input:
+"Tomato", "2025-02-22"
+
+Example Output (for Tomatoes):
+
+yaml
+Copy
+Growth Stage 1:
+- Name: Seed Planting
+- Duration: 0-7 days
+- Start Date: 2025-02-22
+- End Date: 2025-02-29
+- Task: Plant tomato seeds in well-drained soil after the danger of frost has passed.
+- Frequency: None
+
+Growth Stage 2:
+- Name: Germination
+- Duration: 5-10 days
+- Start Date: 2025-02-22
+- End Date: 2025-03-04
+- Task: Tomato seeds should start sprouting in warm soil.
+- Frequency: None
+
+Growth Stage 3:
+- Name: Vegetative Growth
+- Duration: 10-30 days
+- Start Date: 2025-03-05
+- End Date: 2025-04-04
+- Task: Transplant seedlings to outdoor soil once they are strong enough.
+- Frequency: Every 3 days (watering)
+
+Growth Stage 4:
+- Name: Flowering
+- Duration: 30-70 days
+- Start Date: 2025-03-24
+- End Date: 2025-05-02
+- Task: First flowers will bloom, and fruiting begins.
+- Frequency: Every 7 days (fertilizing)
+
+Growth Stage 5:
+- Name: Harvesting
+- Duration: 90 days
+- Start Date: 2025-05-22
+- End Date: 2025-05-23
+- Task: Harvest tomatoes when they are firm and fully colored.
+- Frequency: None
+
+
+"""
+
+# output = """
+# Growth Stage 1:
+# - Name: Seed Planting
+# - Duration: 0-7 days
+# - Start Date: 2025-02-22
+# - End Date: 2025-02-29
+# - Task: Plant tomato seeds in well-drained soil after the danger of frost has passed.
+
+# Growth Stage 2:
+# - Name: Germination
+# - Duration: 5-10 days
+# - Start Date: 2025-02-22
+# - End Date: 2025-03-04
+# - Task: Tomato seeds should start sprouting in warm soil.
+
+# Growth Stage 3:
+# - Name: Vegetative Growth
+# - Duration: 10-30 days
+# - Start Date: 2025-03-05
+# - End Date: 2025-04-04
+# - Task: Transplant seedlings to outdoor soil once they are strong enough.
+
+# Growth Stage 4:
+# - Name: Flowering
+# - Duration: 30-70 days
+# - Start Date: 2025-03-24
+# - End Date: 2025-05-02
+# - Task: First flowers will bloom, and fruiting begins.
+
+# Growth Stage 5:
+# - Name: Harvesting
+# - Duration: 90 days
+# - Start Date: 2025-05-22
+# - End Date: 2025-05-23
+# - Task: Harvest tomatoes when they are firm and fully colored.
+# """
+
+# growth_stages = parse_growth_stages(output)
+
+# for gs in growth_stages:
+#     print(gs)
+
+user_input = f'User query: Give me planting timeline for this {predicted_plant}?'
+completion = client.chat.completions.create(
+    model="gpt-4o",
+    store=True,
+    messages=[
+        {"role": "system", "content": PROMPT},
+
+        {"role": "user", "content": user_input}
+    ]
+)
+
+print(completion.choices[0].message)
+
+
+
+
