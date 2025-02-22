@@ -3,6 +3,7 @@ from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
 import requests
 from plant_req_api import get_plant_info 
+from event_creation import parse_growth_stages
 import time
 import re
 
@@ -25,22 +26,7 @@ def process_plant_info(data):
     return context
 
 
-def parse_growth_stages(output):
-    stages = []
-    pattern = r"Growth Stage (\d+):\n- Name: ([\w\s]+)\n- Duration: ([\d\-\w\s]+)\n- Start Date: ([\d\-]+)\n- End Date: ([\d\-]+)\n- Task: ([\w\s,]+)"
-    matches = re.findall(pattern, output)
-    
-    for match in matches:
-        stage_number, name, duration, start_date, end_date, task = match
-        stages.append({
-            'name': name.strip(),
-            'duration': duration.strip(),
-            'start_date': start_date.strip(),
-            'end_date': end_date.strip(),
-            'task': task.strip()
-        })
-    
-    return stages
+
 
 client = OpenAI()
 
@@ -148,48 +134,6 @@ Growth Stage 5:
 
 """
 
-# output = """
-# Growth Stage 1:
-# - Name: Seed Planting
-# - Duration: 0-7 days
-# - Start Date: 2025-02-22
-# - End Date: 2025-02-29
-# - Task: Plant tomato seeds in well-drained soil after the danger of frost has passed.
-
-# Growth Stage 2:
-# - Name: Germination
-# - Duration: 5-10 days
-# - Start Date: 2025-02-22
-# - End Date: 2025-03-04
-# - Task: Tomato seeds should start sprouting in warm soil.
-
-# Growth Stage 3:
-# - Name: Vegetative Growth
-# - Duration: 10-30 days
-# - Start Date: 2025-03-05
-# - End Date: 2025-04-04
-# - Task: Transplant seedlings to outdoor soil once they are strong enough.
-
-# Growth Stage 4:
-# - Name: Flowering
-# - Duration: 30-70 days
-# - Start Date: 2025-03-24
-# - End Date: 2025-05-02
-# - Task: First flowers will bloom, and fruiting begins.
-
-# Growth Stage 5:
-# - Name: Harvesting
-# - Duration: 90 days
-# - Start Date: 2025-05-22
-# - End Date: 2025-05-23
-# - Task: Harvest tomatoes when they are firm and fully colored.
-# """
-
-# growth_stages = parse_growth_stages(output)
-
-# for gs in growth_stages:
-#     print(gs)
-
 user_input = f'User query: Give me planting timeline for this {predicted_plant}?'
 completion = client.chat.completions.create(
     model="gpt-4o",
@@ -200,8 +144,10 @@ completion = client.chat.completions.create(
         {"role": "user", "content": user_input}
     ]
 )
+print(completion.choices[0].message.content)
+parsed_output = parse_growth_stages(completion.choices[0].message.content)
 
-print(completion.choices[0].message)
+print(parsed_output)
 
 
 
