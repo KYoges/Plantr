@@ -3,8 +3,11 @@ from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
 import requests
 from plant_req_api import get_plant_info 
-from event_creation import parse_growth_stages
+from event_creation import *
 import time
+import re
+from datetime import datetime, timedelta
+from ics import Calendar, Event
 import re
 
 def process_plant_info(data):
@@ -146,8 +149,13 @@ completion = client.chat.completions.create(
 )
 print(completion.choices[0].message.content)
 parsed_output = parse_growth_stages(completion.choices[0].message.content)
+calendar = create_ics_calendar(parsed_output)
 
-print(parsed_output)
+
+with open("crop_growth_calendar.ics", "w") as my_file:
+    my_file.writelines(calendar)
+
+print("ICS file generated: crop_growth_calendar.ics")
 
 
 
