@@ -1,0 +1,42 @@
+{
+  "manihot esculenta": {
+    "lower_end": 0.09,
+    "higher_end": 0.23
+  },
+  "zea mays": {
+    "lower_end": 0.22,
+    "higher_end": 0.33
+  },
+  "musa spp.": {
+    "lower_end": 0.66,
+    "higher_end": 1.54
+  },
+  "solanum tuberosum": {
+    "lower_end": 0.44,
+    "higher_end": 1.10
+  },
+  "oryza sativa": {
+    "lower_end": 0.44,
+    "higher_end": 1.32
+  },
+  "sorghum bicolor": {
+    "lower_end": 0.33,
+    "higher_end": 0.66
+  },
+  "glycine max": {
+    "lower_end": 0.26,
+    "higher_end": 0.33
+  },
+  "ipomoea batatas": {
+    "lower_end": 1.10,
+    "higher_end": 2.20
+  },
+  "triticum aestivum": {
+    "lower_end": 0.44,
+    "higher_end": 0.66
+  },
+  "dioscorea spp.": {
+    "lower_end": 1.76,
+    "higher_end": 4.40
+  }
+}
