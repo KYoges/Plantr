@@ -2,8 +2,8 @@ from openai import OpenAI
 from pinecone.grpc import PineconeGRPC as Pinecone
 from pinecone import ServerlessSpec
 import requests
-from plant_req_api import get_plant_info 
-from event_creation import *
+from llm_api.plant_req_api import get_plant_info 
+from llm_api.event_creation import *
 import time
 import re
 from datetime import datetime, timedelta
@@ -30,8 +30,6 @@ def process_plant_info(data):
 
 client = OpenAI()
 
-predicted_plant = "Zea mays"
-print(get_plant_info(predicted_plant))
 
 def get_plant_info_llm(predicted_plant):
 
@@ -175,7 +173,7 @@ def make_sch_info(predicted_plant):
 
     return completion.choices[0].message.content
 
-output_llm = get_plant_info_llm(predicted_plant)
+# output_llm = get_plant_info_llm(predicted_plant)
 # if __name__ == "__main__":
 #     output_llm = get_plant_info_llm(predicted_plant)
 #     print(output_llm)

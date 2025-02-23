@@ -4,7 +4,7 @@ import time
 import os
 
 
-df = pd.read_csv('important_crops.csv')
+df = pd.read_csv('llm_api/important_crops.csv')
 
 
 def get_plant_info(plant_name):
