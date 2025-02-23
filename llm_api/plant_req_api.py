@@ -97,13 +97,13 @@ def get_crop_species_distribution_us(family_list):
     return pd.DataFrame(all_species_locations)
 
 
-def get_crop_species_distribution_us(species_list):
-    """Fetches all agricultural crop species in the US from GBIF and saves progress regularly"""
-
+def get_crop_species_distribution(species_list, countries=["US", "IN"]):
+    """Fetches all agricultural crop species occurrences from GBIF for given countries and saves progress regularly."""
+    
     base_url = "https://api.gbif.org/v1/occurrence/search"
     limit = 1000
     all_species_locations = []
-    csv_filename = "us_crop_species_distribution.csv"
+    csv_filename = "important_crop_distrub_usin.csv"
     
     # Try to load previously saved data, if any
     if os.path.exists(csv_filename):
@@ -113,50 +113,51 @@ def get_crop_species_distribution_us(species_list):
         print(f"Loaded {len(all_species_locations)} previous records.")
     
     for species in species_list:
-        print(f"Fetching species: {species}...")
+        for country in countries:
+            print(f"Fetching species: {species} for country: {country}...")
 
-        offset = 0  
-        while True:
-            try:
-                print(f"Fetching records {offset} - {offset + limit} for species {species} in the US...")
+            offset = 0  
+            while True:
+                try:
+                    print(f"Fetching records {offset} - {offset + limit} for species {species} in {country}...")
 
-                response = requests.get(
-                    f"{base_url}?scientificName={species}&country=US&limit={limit}&offset={offset}"
-                )
-                
-                if response.status_code != 200:
-                    print(f"Error fetching data for {species}: {response.status_code}")
-                    break
+                    response = requests.get(
+                        f"{base_url}?scientificName={species}&country={country}&limit={limit}&offset={offset}"
+                    )
+                    
+                    if response.status_code != 200:
+                        print(f"Error fetching data for {species} in {country}: {response.status_code}")
+                        break
 
-                data = response.json()
-                results = data.get("results", [])
+                    data = response.json()
+                    results = data.get("results", [])
 
-                if not results:
-                    break
+                    if not results:
+                        break
 
-                for record in results:
-                    if "decimalLatitude" in record and "decimalLongitude" in record:
-                        all_species_locations.append({
-                            "scientificName": record.get("scientificName"),
-                            "latitude": record.get("decimalLatitude"),
-                            "longitude": record.get("decimalLongitude"),
-                            "country": record.get("country"),
-                            "year": record.get("year"),
-                            "month": record.get("month"),
-                            "day": record.get("day"),
-                        })
+                    for record in results:
+                        if "decimalLatitude" in record and "decimalLongitude" in record:
+                            all_species_locations.append({
+                                "scientificName": record.get("scientificName"),
+                                "latitude": record.get("decimalLatitude"),
+                                "longitude": record.get("decimalLongitude"),
+                                "country": record.get("country"),
+                                "year": record.get("year"),
+                                "month": record.get("month"),
+                                "day": record.get("day"),
+                            })
 
-                # Save progress after each species
-                pd.DataFrame(all_species_locations).to_csv(csv_filename, index=False)
-                print(f"✅ Saved {len(all_species_locations)} records to {csv_filename}.")
-                
-                # Move to next batch
-                offset += limit
-                time.sleep(2)
-                
-            except Exception as e:
-                print(f"An error occurred while fetching data for {species}: {e}")
-                break  # Exit the loop if any error occurs
+                    # Save progress after each species
+                    pd.DataFrame(all_species_locations).to_csv(csv_filename, index=False)
+                    print(f"✅ Saved {len(all_species_locations)} records to {csv_filename}.")
+                    
+                    # Move to next batch
+                    offset += limit
+                    time.sleep(2)
+                    
+                except Exception as e:
+                    print(f"An error occurred while fetching data for {species} in {country}: {e}")
+                    break  # Exit the loop if any error occurs
 
     # Final save to ensure all data is written
     try:
@@ -168,7 +169,14 @@ def get_crop_species_distribution_us(species_list):
     
     return pd.DataFrame(all_species_locations)
 
-# get_crop_species_distribution_us(df['Scientific Name'].to_numpy())
+
+# # get_crop_species_distribution_us(df['Scientific Name'].to_numpy())
+# crop_species = [
+#     "Manihot esculenta", "Zea mays", "Musa spp.", "Solanum tuberosum",
+#     "Oryza sativa", "Sorghum bicolor", "Glycine max", "Ipomoea batatas",
+#     "Triticum aestivum", "Dioscorea spp."
+# ]
 
 
+# get_crop_species_distribution(crop_species)
 

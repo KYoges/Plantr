@@ -173,7 +173,7 @@ def make_sch_info(predicted_plant):
 
     return completion.choices[0].message.content
 
-# output_llm = get_plant_info_llm(predicted_plant)
+# output_llm = make_sch_info("zea_mays")
 # if __name__ == "__main__":
 #     output_llm = get_plant_info_llm(predicted_plant)
 #     print(output_llm)

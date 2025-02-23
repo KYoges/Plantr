@@ -1,0 +1,53 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:ics.py - http://git.io/lLljaA
+BEGIN:VEVENT
+DESCRIPTION:Silks emerge\, and pollination occurs\; keep soil moist to aid successful kernel development.
+DTEND:20250602T000000Z
+DTSTART:20250519T000000Z
+SUMMARY:Silking
+UID:e53641f3-a49b-40e7-b668-a4a565398e44@e536.org
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Kernels reach full size and begin to dry down\; monitor for disease and pests.
+DTEND:20250812T000000Z
+DTSTART:20250603T000000Z
+SUMMARY:Maturity
+UID:b850ce6e-8b13-4e09-9dd0-cf861b21fad1@b850.org
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Tassels appear at the top of the plant\; critical period for pollination\, ensure regular watering.
+DTEND:20250518T000000Z
+DTSTART:20250505T000000Z
+SUMMARY:Tasseling
+UID:7cc0ba15-e30a-471a-967e-5643e6be1999@7cc0.org
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Harvest when kernels have reached desired moisture content\, typically around 15-18%.
+DTEND:20250827T000000Z
+DTSTART:20250813T000000Z
+SUMMARY:Harvesting
+UID:e6d059ea-38e9-4828-ae79-6648fe52aeaa@e6d0.org
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Corn seeds begin to sprout and create roots\; ensure soil remains moist.
+DTEND:20250303T000000Z
+DTSTART:20250222T000000Z
+SUMMARY:Germination
+UID:bdd3e984-2d4f-4613-94bb-984aaf4c6d17@bdd3.org
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Seeds emerge from the soil\; continue to water sufficiently as seedlings develop.
+DTEND:20250324T000000Z
+DTSTART:20250304T000000Z
+SUMMARY:Seedling
+UID:277d4d3b-5571-4442-8c0a-a5ac881c67e5@277d.org
+END:VEVENT
+BEGIN:VEVENT
+DESCRIPTION:Plants increase in height and leaf number\; monitor for pests and apply fertilizer.
+DTEND:20250504T000000Z
+DTSTART:20250325T000000Z
+SUMMARY:Vegetative Growth
+UID:30744a01-ca21-44af-af46-d3f1d348310d@3074.org
+END:VEVENT
+END:VCALENDAR

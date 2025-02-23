@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICS Calendar</title>
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+
+    <!-- Bootstrap for Styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <style>
+        /* General Styling */
+        body {
+            background-color: #f0fff0; /* Light greenish background */
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 12px rgba(0, 128, 0, 0.2); /* Soft green shadow */
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #006400; /* Dark green */
+        }
+
+        #calendar {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* Calendar Custom Styling */
+        .fc-toolbar-title {
+            color: #006400; /* Dark Green Title */
+            font-weight: bold;
+        }
+
+        .fc-button {
+            background-color: #008000 !important; /* Green buttons */
+            border: none !important;
+            color: white !important;
+            border-radius: 8px !important;
+        }
+
+        .fc-button:hover {
+            background-color: #006400 !important; /* Darker Green on Hover */
+        }
+
+        .fc-daygrid-day-number {
+            text-decoration: none !important; /* Remove underlines */
+            color: #008000 !important;
+        }
+
+        /* Events Styling */
+        .fc-event {
+            background-color: #32CD32 !important; /* Lighter Green Events */
+            border: none !important;
+            color: white !important;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+            border-radius: 6px !important;
+        }
+
+        .fc-event:hover {
+            transform: scale(1.05);
+            background-color: #228B22 !important; /* Darker green hover */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Planting Timeline</h2>
+        <div id="calendar"></div>
+    </div>
+
+    <!-- FullCalendar & Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            fetchEvents();
+        });
+
+        function fetchEvents() {
+            axios.get("http://127.0.0.1:5000/get-events")
+            .then(response => {
+                displayCalendar(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching events:", error);
+                alert("Failed to load events. Ensure the ICS file exists.");
+            });
+        }
+
+        function displayCalendar(events) {
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                themeSystem: 'bootstrap',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: events,
+                eventClick: function(info) {
+                    alert(`📌 Event: ${info.event.title}\n🗓 Start: ${info.event.start}\n⏳ End: ${info.event.end || 'Not specified'}`);
+                }
+            });
+            calendar.render();
+        }
+    </script>
+
+</body>
+</html>

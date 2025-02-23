@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Distribution Map</title>
+    
+    <!-- Leaflet.js CSS & JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+
+    <style>
+        #map { height: 100vh; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        var map = L.map('map').setView([37.0902, -95.7129], 4);  // Default to the US
+        
+        // Load Tile Layer (Basemap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Plant Data (Passed from Flask)
+        var plantData = {{ plant_data | tojson }};
+
+        // Add Markers
+        plantData.forEach(function(point) {
+            L.marker([point.latitude, point.longitude])
+                .addTo(map)
+                .bindPopup(`${point.scientificName} (${point.country}, ${point.year})`);
+        });
+
+    </script>
+
+</body>
+</html>
