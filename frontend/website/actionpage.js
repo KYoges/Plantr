@@ -6,8 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); // Prevent page refresh
             console.log('Form submitted!');
             const postcode = document.querySelector('.postcode').value;
-            console.log('Postcode:', postcode);
-            getLatLon(postcode).then(coords => console.log(coords)); // { latitude: 40.7507, longitude: -73.9964 }
+            if (postcode.length == 5){
+                getLatLon(postcode).then(coords => console.log(coords)); // { latitude: 40.7507, longitude: -73.9964 }
+            } else {
+                console.log('Postcode:', postcode);
+            }
         });
     } else {
         console.error('Form not found!');
@@ -30,3 +33,6 @@ async function getLatLon(zip) {
         return null;
     }
 }
+
+// Example usage
+// getPostcodeFromLatLng(51.5074, -0.1278).then(console.log);

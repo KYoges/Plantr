@@ -18,6 +18,7 @@ body {
     text-align: center;
     outline: none;
 }
+
 .icon-btn {
     background: none;
     border: none;
@@ -38,4 +39,31 @@ body {
 }
 .plant-btn:hover {
     background-color: #90c478;
+}
+
+/* Make sure the body takes up full screen */
+body, html {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Position the iframe behind the main content */
+iframe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: -1; /* This ensures it's behind other content */
+}
+
+/* Your main content styles */
+.content {
+    position: relative;
+    z-index: 1;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
 }
