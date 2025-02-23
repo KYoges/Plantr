@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Price Display Animation</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: white;  /* Set the body background to white */
+    }
+
+    .price-display {
+      font-size: 4rem;
+      font-weight: bold;
+      background: linear-gradient(to right, #28a745, #218838); /* Darker green gradient */
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: none; /* No glow effect */
+    }
+
+    .yield-display {
+      font-size: 2.5rem;
+      font-weight: bold;
+      background: linear-gradient(to right, #ff9800, #f57c00); /* Orange gradient */
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: none; /* No glow effect */
+      margin-top: 20px;
+      padding: 1.1rem;
+      background: whitesmoke;
+      border-radius: 1rem;
+    }
+
+    .price-range-display {
+      font-size: 2rem;
+      color: black;
+      font-weight: bold;
+      margin-top: 20px;
+      padding: 1.1rem;
+      background: whitesmoke;
+      border-radius: 1rem;
+    }
+
+    /* For the price spans */
+    .price-span {
+      display: inline-block;
+      color: #4CAF50; /* Green color for price */
+    }
+    #lowerPrice #upperPrice {
+
+    }
+  </style>
+</head>
+<body class="flex flex-col justify-center items-center min-h-screen">
+  
+  <!-- Display predicted yield -->
+  <div  class="yield-display" style="color: black;">Predicted Yield: <span id="yieldDisplay" style="color: #4CAF50 ;">0</span> hg/ha</div>
+
+  <!-- Display price range -->
+  <div id="priceRangeDisplay" class="price-range-display">
+    Price Range: 
+    <span id="lowerPrice" class="price-span">$0</span> - 
+    <span id="upperPrice" class="price-span">$0</span>
+  </div>
+
+  <script>
+    const predictedYield = {{ predicted_yield }}; 
+    const lowerPrice = {{ lower_price }}; 
+    const upperPrice = {{ upper_price }};  
+
+    function animateNumber(element, startValue, endValue, duration) {
+      const startTime = Date.now();
+      function update() {
+        const currentTime = Date.now();
+        const timeElapsed = currentTime - startTime;
+        const progress = Math.min(timeElapsed / duration, 1);
+        const currentValue = Math.floor(startValue + (endValue - startValue) * progress);
+        element.textContent = `$${currentValue.toLocaleString()}`;  // Format as currency
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      update();
+    }
+
+    // Animate predicted yield display
+    const yieldDisplay = document.getElementById('yieldDisplay');
+    animateNumber(yieldDisplay, 0, predictedYield, 3000); // Animate predicted yield
+
+    // Animate lower price first
+    const lowerPriceElement = document.getElementById('lowerPrice');
+    animateNumber(lowerPriceElement, 0, lowerPrice, 3000);  // Animate lower price
+
+    // Animate upper price after lower price is done
+    const upperPriceElement = document.getElementById('upperPrice');
+    setTimeout(() => {
+      animateNumber(upperPriceElement, 0, upperPrice, 3000);  // Animate upper price after 3 seconds
+    }, 3000);  // Start after lower price finishes
+  </script>
+</body>
+</html>
