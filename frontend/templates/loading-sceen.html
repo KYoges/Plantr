@@ -28,8 +28,9 @@
             <div class="bar"></div>
         </div>
     </div>
-      <iframe id="dashboardIframe" src="/dashboard" style="display:none;"></iframe>
-
+  <iframe id="dashboardIframe" 
+          src="/dashboard?plant_name={{ plant_name | urlencode }}" 
+          style="display:none;"></iframe>
 </body>
 </html>
 <style >
@@ -134,6 +135,6 @@ body {
 
   <script>
      document.getElementById('dashboardIframe').addEventListener('load', function() {
-      window.location.href = '/dashboard';
+      window.location.href = '/dashboard?plant_name=' + encodeURIComponent("{{ plant_name }}");
     });
     </script>

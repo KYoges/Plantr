@@ -14,17 +14,18 @@ import pandas as pd
 from price_pred_api.get_yield import *
 import json
 import markdown
-<<<<<<< Updated upstream
 from llm_api.filterCrops import filter_crops
-=======
 from flask_cors import CORS
 from ics import Calendar
 import folium
+import pgeocode
+import math
+geolocator = Nominatim(user_agent="plantr")
 
 ICS_FILE_PATH = "crop_growth_calendar.ics"
 CSV_FILE = "llm_api/combined_crop_distribution.csv"
+nomi = pgeocode.Nominatim('us')
 
->>>>>>> Stashed changes
 
 # FLASK CONFIG
 app = Flask(__name__,
@@ -38,9 +39,32 @@ print(os.path.join(os.getcwd(), 'frontend', 'static'))
 # DATAFRAMES
 df = pd.read_csv("llm_api/us_crop_species_distribution.csv")
 df2 = pd.read_csv("llm_api/us_crop_species_distribution2.csv")
+df_crop_distribution = pd.read_csv(CSV_FILE)
+
 
 df_yield = pd.read_csv('ml_model/yield_data_with_scientific_names.csv')
 app = Flask(__name__, template_folder=os.path.join(os.getcwd(), 'frontend', 'templates'))
+
+
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # Earth's radius in kilometers
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+    
+    a = math.sin(delta_phi/2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda/2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+# Function to compute the three nearest plants from a DataFrame
+def get_nearest_plants(df, user_lat, user_lon, k=3):
+    # Compute distance for each record
+    df['distance'] = df.apply(lambda row: haversine_distance(user_lat, user_lon, row['latitude'], row['longitude']), axis=1)
+    # Sort by distance and take the top k
+    nearest_df = df.sort_values(by='distance').head(k)
+    return nearest_df.to_dict(orient='records')
+
 
 # STANDALONE FUNCTIONS
 def generate_data():
@@ -81,29 +105,11 @@ def query_llm(choice):
 # DATA APIS
 
 
-@app.route("/")
-@app.route("/map/<plant_name>")
-def show_map(plant_name="Zea mays L."):  # Default plant
-    df = pd.read_csv(CSV_FILE)
-    
-    # Filter dataset
-    df = df[df["scientificName"].str.contains(plant_name, case=False, na=False)]
-
-    if df.empty:
-        return f"<h1>No data found for {plant_name}</h1>", 404
-
-    # Drop rows without coordinates
-    df = df.dropna(subset=["latitude", "longitude"])
-    
-    # Convert to JSON
-    plant_data = df[["latitude", "longitude", "scientificName", "country", "year"]].to_dict(orient="records")
-
-    return render_template("map.html", plant_data=plant_data)
-
 
 @app.route('/')
 def index():
     return render_template('index.html')  
+
 @app.route('/get-plant-yield')
 def get_plant_yield():
     crop_scientific_name = 'Zea mays'
@@ -121,7 +127,8 @@ def get_plant_yield():
 
 @app.route('/loading-screen')
 def loading_screen():
-    return render_template('loading-sceen.html')
+    plant_name = request.args.get('plant_name', '')
+    return render_template('loading-sceen.html', plant_name=plant_name)
 
 @app.route('/markdown-page')
 def markdown_page():
@@ -219,18 +226,20 @@ def choose():
 
     return jsonify(user_choice(location, choice))
 
-<<<<<<< Updated upstream
-=======
+from urllib.parse import unquote
+
 @app.route('/dashboard')
 def dashboard():
     import pandas as pd
     from ics import Calendar
     import markdown
-    from flask import request, render_template
 
     # --- 1. Get Map Data from CSV ---
+    # Get the URL parameter and decode it
     plant_name = request.args.get('plant_name', 'Zea mays L.')
-    df = pd.read_csv(CSV_FILE)  # Ensure CSV_FILE is defined elsewhere in your app
+    plant_name = unquote(plant_name)  # Decodes any URL-encoded characters
+
+    df = pd.read_csv(CSV_FILE)
     df = df[df["scientificName"].str.contains(plant_name, case=False, na=False)]
     if df.empty:
         return f"<h1>No data found for {plant_name}</h1>", 404
@@ -240,7 +249,7 @@ def dashboard():
     # --- 2. Get Calendar Events from ICS File ---
     events = []
     try:
-        with open(ICS_FILE_PATH, "r", encoding="utf-8") as f:  # Ensure ICS_FILE_PATH is defined
+        with open("calendar.ics", "r", encoding="utf-8") as f:
             calendar = Calendar(f.read())
         for event in calendar.events:
             events.append({
@@ -252,17 +261,17 @@ def dashboard():
         events = []
 
     # --- 3. Get Plant Information (Markdown via LLM) ---
-    choice = 'Zea mays'
-    llm_response = get_plant_info_llm(choice)  # Your function to fetch plant info
+    choice = plant_name.split()[0]
+    llm_response = get_plant_info_llm(choice)  # Assume this function is defined elsewhere
     md_text = markdown.markdown(llm_response)
 
     # --- 4. Get Yield Information ---
-    crop_scientific_name = 'Zea mays'
+    crop_scientific_name = plant_name.split()[0]
     crop_scientific_name_url = crop_scientific_name.replace(" ", "_").lower()
+
     predicted_yield = get_yield_for_crop_and_country(df_yield, "India", crop_scientific_name_url)
     lower_price, upper_price = get_yield_lower_upper_price(predicted_yield, crop_scientific_name_url, 2)
 
-    # --- Render the integrated dashboard template ---
     return render_template(
         "main.html",
         plant_data=plant_data,
@@ -272,7 +281,31 @@ def dashboard():
         lower_price=lower_price,
         upper_price=upper_price
     )
->>>>>>> Stashed changes
+
+@app.route("/process_input" , methods=['POST'])
+def process_input():
+    postcode = request.form.get('postcode')
+    location = geolocator.geocode(f"{postcode}, USA")
+    if not location:
+        return jsonify({"status": "error", "message": "Invalid or unknown postcode."}), 400
+
+    latitude = location.latitude
+    longitude = location.longitude
+
+   
+    # Calculate the three nearest plants
+    plant_options = get_nearest_plants(df_crop_distribution, latitude, longitude, k=3)
+
+    return jsonify({
+        "status": "success",
+        "postcode": postcode,
+        "latitude": latitude,
+        "longitude": longitude,
+        "plant_options": plant_options
+    })
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -8,6 +8,8 @@
         L_NO_TOUCH = false;
         L_DISABLE_3D = false;
     </script>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     <style>html, body {
         width: 100%;
@@ -170,7 +172,7 @@
     <div class="container mt-5">
         <div class="location-box mx-auto">
             <!-- Add an ID to the form element -->
-            <form id="locationForm">
+            <form id="postcodeForm" action="/prcoess-input" method="POST">
                 <div class="d-flex align-items-left">
                     <button id="getPostcodeBtn" type="button" class="icon-btn"><i class="bi bi-geo-alt-fill"></i></button>
                     <input id="postcode" type="text" name="postcode" class="postcode" placeholder="Enter zipcode">
@@ -624,7 +626,7 @@
 
     function saveCoordinatesToFile(latitude, longitude) {
         const data = { latitude, longitude };
-        fetch('/save-coordinates', {
+        fetch('/process_input', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -642,5 +644,45 @@
 
 
 </script>
+  <script>
+    // Listen for form submission
+    document.getElementById('postcodeForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      
+      fetch('/process_input', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success'){
+          // Build HTML content for the SweetAlert2 pop-up with plant options
+          let optionsHtml = '';
+          data.plant_options.forEach((option, index) => {
+            optionsHtml += `<button style="margin:5px;" onclick="selectPlant('${encodeURIComponent(option.scientificName)}')">
+                              ${option.scientificName} (${option.distance.toFixed(2)} km)
+                              </button><br>`;
+          });
+          Swal.fire({
+            title: 'Select a Plant',
+            html: optionsHtml,
+            showConfirmButton: false
+          });
+        } else {
+          Swal.fire('Error', data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        Swal.fire('Error', 'An error occurred while processing your request.', 'error');
+      });
+    });
+
+    // Redirect the user when a plant option is selected
+    function selectPlant(scientificName) {
+    window.location.href = '/loading-screen?plant_name=' + encodeURIComponent(scientificName);
+    }
+  </script>
 
 </html>
