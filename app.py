@@ -14,6 +14,7 @@ import pandas as pd
 from price_pred_api.get_yield import *
 import json
 import markdown
+from llm_api.filterCrops import filter_crops
 
 # FLASK CONFIG
 app = Flask(__name__,
@@ -35,19 +36,6 @@ def generate_data():
     response = get_plant_info_llm(choice)
     time.sleep(5)
     return response
-
-def get_best_crops(df, lat, lon, radius_km=50):
-    latitudes = df["latitude"].to_numpy()
-    longitudes = df["longitude"].to_numpy()
-    months = df["month"].to_numpy()
-    scientific_names = df["scientificName"].to_numpy()
-    current_month = datetime.now().month
-    locations = np.column_stack((latitudes, longitudes))
-    distances = np.array([great_circle((lat, lon), tuple(loc)).km for loc in locations])
-    mask = (distances <= radius_km) & (months == current_month)
-    unique_crops = np.unique(scientific_names[mask])
-    return unique_crops.tolist()
-
 
 def get_location(postcode):
     geoLocator = Nominatim(user_agent="cropPrediction")
@@ -127,6 +115,30 @@ def main_page():
 
     return render_template('index.html')
 
+@app.route('/save-coordinates', methods=['POST'])
+def save_coordinates():
+    data = request.json
+
+    df = pd.read_csv("llm_api/us_crop_species_distribution.csv")
+    df2 = pd.read_csv("llm_api/us_crop_species_distribution2.csv")
+
+    longitude = float(data.get("longitude"))
+    latitude = float(data.get("latitude"))
+
+    crops = filter_crops(df, latitude, longitude) 
+    crops2 = filter_crops(df2, latitude, longitude) 
+
+    with open('coordinates.json', 'w') as file:
+        json.dump(data, file)
+
+    global list_crops
+    list_crops = (crops+crops2)
+
+    return jsonify({"message": "Coordinates saved successfully"})
+
+@app.route('/get_list', methods=['GET'])
+def get_list():
+    return jsonify(list_crops)
 
 
 @app.route('/get-info')
@@ -155,6 +167,7 @@ def choose():
         return jsonify({"error": "Invalid location or choice"}), 400
 
     return jsonify(user_choice(location, choice))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
