@@ -1,0 +1,69 @@
+body {
+    background-color: #e3f2dc; /* Soft green background */
+}
+.location-box {
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    width: 280px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+.longitude, .latitude {
+    background-color: #ddd;
+    border-radius: 8px;
+    padding: 5px 10px;
+    border: none;
+    width: 100%;
+    font-family: monospace;
+    text-align: center;
+    outline: none;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+.plant-btn {
+    background-color: #a8d68f;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 5px;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.plant-btn:hover {
+    background-color: #90c478;
+}
+
+/* Make sure the body takes up full screen */
+body, html {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Position the iframe behind the main content */
+iframe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    z-index: -1; /* This ensures it's behind other content */
+}
+
+/* Your main content styles */
+.content {
+    position: relative;
+    z-index: 1;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
