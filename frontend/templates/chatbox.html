@@ -3,66 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plantr - Grow Smarter</title>
+    <title>Plant Info</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        #chatbot-container {
-            position: fixed;
-            bottom: 60px;
-            right: 20px;
-            width: 700px;
-            height: 500px;
+        body {
+            font-family: Arial, sans-serif;
             background-color: white;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-            transition: transform 0.3s ease-in-out;
-            transform: translateY(100%);
-            display: flex;
-            flex-direction: column;
+            color: black;
+            margin: 0;
+            padding: 0;
         }
-        #chatbot-header {
-            background-color: #4CAF50;
+
+        .header {
+            background-color: #2f8132;
             color: white;
-            padding: 10px;
             text-align: center;
+            padding: 20px;
+            font-size: 24px;
             font-weight: bold;
-            cursor: pointer;
+            letter-spacing: 1px;
         }
-        #chatbot-messages {
-            padding: 10px;
-            flex-grow: 1;
-            overflow-y: auto;
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background: whitesmoke;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
         }
-        #chatbot-input {
-            width: calc(100% - 20px);
-            margin: 10px;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+
+        #loading {
+            font-size: 20px;
+            color: #2f8132;
+            font-weight: bold;
+            display: block;
         }
-        .show-chatbot {
-            transform: translateY(0) !important;
+
+        #content {
+            display: none;
+            text-align: left;
         }
     </style>
 </head>
 <body>
-    
-    <div id="chatbot-container">
-        <div id="chatbot-header" onclick="toggleChatbot()">Plantr Assistant</div>
-        <div id="chatbot-messages"></div>
-        <input type="text" id="chatbot-input" placeholder="Type a message...">
+
+    <div class="header"> Plant Information</div>
+
+    <div class="container">
+        <div id="loading">Generating response... Please wait ⏳</div>
+        <div id="content"></div>
     </div>
 
     <script>
-        function toggleChatbot() {
-            document.getElementById('chatbot-container').classList.toggle('show-chatbot');
+        async function fetchMarkdown() {
+            try {
+                const response = await fetch('/markdown'); // Fetch Markdown from Flask
+                const data = await response.json();
+                const markdownContent = data.markdown;
+
+                // Delay for 5 seconds before showing content
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = 'none'; // Hide loading
+                    document.getElementById('content').style.display = 'block'; // Show content
+                    document.getElementById('content').innerHTML = markdownContent; // Render Markdown
+                }, 1000);
+
+            } catch (error) {
+                document.getElementById('loading').innerText = "Error loading content!";
+            }
         }
-        function receiveChatbotResponse(response) {
-            let messages = document.getElementById('chatbot-messages');
-            let message = document.createElement('p');
-            message.textContent = response;
-            messages.appendChild(message);
-            document.getElementById('chatbot-container').classList.add('show-chatbot');
-        }
+
+        fetchMarkdown(); // Call the function on page load
     </script>
+
 </body>
 </html>

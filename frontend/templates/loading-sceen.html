@@ -129,3 +129,26 @@ body {
 }
 
 </style>
+
+  <script>
+       async function waitForMarkdown() {
+            try {
+                // Fetch the Markdown response from Flask
+                const response = await fetch('/markdown');
+                const data = await response.json();
+
+                if (data.markdown) {
+                    // Once we receive the response, redirect to markdown-page
+                    window.location.href = "/markdown-page";
+                } else {
+                    document.getElementById('loading-message').innerText = "Still generating, please wait...";
+                    setTimeout(waitForMarkdown, 2000);  // Retry every 2 seconds if no response
+                }
+            } catch (error) {
+                document.getElementById('loading-message').innerText = "Error fetching response. Retrying...";
+                setTimeout(waitForMarkdown, 3000);  // Retry after 3 seconds on failure
+            }
+        }
+
+        waitForMarkdown();  // Start waiting for response
+    </script>

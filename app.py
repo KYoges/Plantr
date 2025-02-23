@@ -1,33 +1,93 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for
-from crop import predict_crop, user_choice
 import threading
 import time
 import os
-
-# Initialize Flask app with the correct template folder
-app = Flask(__name__,
-            template_folder=os.path.join(os.getcwd(), 'frontend', 'templates'),
-            static_folder=os.path.join(os.getcwd(), 'frontend', 'static'))
+from flask import Flask, request, jsonify
+from geopy.geocoders import Nominatim
+from geopy.distance import great_circle
+import pandas as pd
+import numpy as np
+from datetime import datetime
+from geopy.distance import great_circle
+from llm_api.llm_integration import get_plant_info_llm, make_sch_info
 import pandas as pd
 from price_pred_api.get_yield import *
 import json
-#get_yield_for_crop_and_country(yield_df, country, crop_scientific_name)
+import markdown
+
+# FLASK CONFIG
+app = Flask(__name__,
+            template_folder=os.path.join(os.getcwd(), 'frontend', 'templates'),
+            static_folder=os.path.join(os.getcwd(), 'frontend', 'static'))
+
+
+print(os.path.join(os.getcwd(), 'frontend', 'static'))
+
+# DATAFRAMES
+df = pd.read_csv("llm_api/us_crop_species_distribution.csv")
+df2 = pd.read_csv("llm_api/us_crop_species_distribution2.csv")
+
 df_yield = pd.read_csv('ml_model/yield_data_with_scientific_names.csv')
-print(df_yield)
 app = Flask(__name__, template_folder=os.path.join(os.getcwd(), 'frontend', 'templates'))
 
-# This prints the current working directory to confirm we're using the right path
-print("Current working directory:", os.getcwd())
-
+# STANDALONE FUNCTIONS
 def generate_data():
+    response = get_plant_info_llm(choice)
     time.sleep(5)
+    return response
+
+def get_best_crops(df, lat, lon, radius_km=50):
+    latitudes = df["latitude"].to_numpy()
+    longitudes = df["longitude"].to_numpy()
+    months = df["month"].to_numpy()
+    scientific_names = df["scientificName"].to_numpy()
+    current_month = datetime.now().month
+    locations = np.column_stack((latitudes, longitudes))
+    distances = np.array([great_circle((lat, lon), tuple(loc)).km for loc in locations])
+    mask = (distances <= radius_km) & (months == current_month)
+    unique_crops = np.unique(scientific_names[mask])
+    return unique_crops.tolist()
+
+
+def get_location(postcode):
+    geoLocator = Nominatim(user_agent="cropPrediction")
+    location = geoLocator.geocode(postcode + ", USA")
+    if location:
+        return location.latitude, location.longitude
+    return None, None  
+
+def predict_crop(postcode):
+    lat, lon = get_location(postcode)
+    if lat is None or lon is None:
+        return {"error": "Invalid postcode or geolocation failed"}
+    return get_best_crops(lat, lon)
+
+def user_choice(postcode, choice):
+    crops = predict_crop(postcode)
+    if "error" in crops:
+        return crops  
+    if choice not in crops:
+        return {"error": "Invalid crop selection"}
+    llm_response = query_llm(choice)
+    return {"selected_crop": choice, "llm_response": llm_response}
+
+def query_llm(choice):
+    get_plant_info_llm(choice)
+    make_sch_info(choice)
+
+
+# ROUTES
+
+
+# DATA APIS
+
+
 
 @app.route('/')
 def index():
-    return render_template('loading-sreen.html')  
+    return render_template('index.html')  
 
-    return render_template('loading-sreen.html')  # Rendering the template
-@app.route('/get-plant-yield')
+app.route('/get-plant-yield')
 def get_plant_yield():
     crop_scientific_name = 'Zea mays'
     crop_scientific_name = crop_scientific_name.replace(" ","_").lower()
@@ -35,27 +95,43 @@ def get_plant_yield():
     lower_price,upper_price = get_yield_lower_upper_price(predicted_yield,crop_scientific_name,2)
     print(lower_price,upper_price)
     return render_template('price-display.html', predicted_yield=predicted_yield, lower_price=lower_price, upper_price=upper_price)
-@app.route('/start_task')
-def start_task():
-    # Start the background task in a separate thread
-    thread = threading.Thread(target=generate_data)
-    thread.start()
-    return jsonify({'status': 'Task started'})
+
+# @app.route('/start_task')
+# def start_task():
+#     thread = threading.Thread(target=generate_data)
+#     thread.start()
+#     return jsonify({'status': 'Task started'})
+
+@app.route('/loading-screen')
+def loading_screen():
+    return render_template('loading-sceen.html')
+
+@app.route('/markdown-page')
+def markdown_page():
+    return render_template('chatbox.html')
+
+@app.route('/markdown')
+def get_llm_markdown():
+    choice = 'Zea mays'
+    llm_response = get_plant_info_llm(choice)
+    md_text = markdown.markdown(llm_response)
+    return jsonify({"markdown":md_text})
 
 @app.route('/redirect_after_delay')
 def redirect_after_delay():
-    # Simulate a 2-second delay
-    time.sleep(2)
-    # After the delay, redirect to index.html (or the desired route)
+    time.sleep(2) 
     return redirect(url_for('main_page'))
 
 @app.route('/main_page')
 def main_page():
-    # Render the main page after the delay
+
     return render_template('index.html')
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
+
+@app.route('/get-info')
+def get_info_plant():
+    return render_template('chatbox.html')
 
 @app.route('/predict', methods=['GET'])
 def predict():
@@ -67,6 +143,7 @@ def predict():
     crops = predict_crop(location)
 
     return jsonify({"recommended_crops": crops})
+
 
 @app.route('/choose', methods=['POST'])
 def choose():
