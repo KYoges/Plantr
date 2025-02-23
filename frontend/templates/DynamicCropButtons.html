@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Button Display</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: flex-start; /* Align content to the left */
+            align-items: center; /* Center vertically */
+            height: 100vh; /* Full viewport height */
+            margin: 0;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            align-items: flex-start; /* Align buttons to the left */
+            padding: 20px;
+        }
+
+        button {
+            margin: 10px 0; /* Space between buttons */
+            padding: 15px 20px; /* Increased button padding */
+            border: 1px solid #28a745; /* Green button border */
+            border-radius: 5px; /* Rounded corners */
+            background-color: #28a745; /* Green button color */
+            color: white; /* Text color */
+            cursor: pointer; /* Pointer cursor on hover */
+            font-size: 18px; /* Increased font size */
+        }
+
+        button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+    </style>
+</head>
+<body>
+    <div id="button-container" class="button-container"></div>
+
+    <script>
+        // Function to display buttons
+        function displayButtons(data) {
+            const container = document.getElementById('button-container');
+            container.innerHTML = ''; // Clear previous buttons
+
+            // Loop through the data array to create buttons
+            data.forEach((str) => {
+                const button = document.createElement('button'); // Create a new button element
+                button.textContent = str; // Set the button text
+                button.onclick = () => { // ON BUTTON CLICK TRIGGER A FUNCTION...
+                    alert(`Button clicked: ${str}`); // Action for button click (example: alert)
+                };
+                container.appendChild(button); // Append the button to the container
+            });
+        }
+
+        // Function to fetch data from the backend
+        async function fetchButtonData() {
+            try {
+                // Simulating a fetch request to a backend API
+                const response = await fetch('https://api.example.com/getButtons'); // Replace with your API endpoint
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json(); // Assuming the backend returns JSON data
+                displayButtons(data); // Display the buttons with the received data
+            } catch (error) {
+                console.error('Error fetching button data:', error);
+                // Fallback to test data in case of an error
+                displayButtons(["Error fetching data", "Button 1", "Button 2"]);
+            }
+        }
+
+        // Call the function to fetch button data
+        fetchButtonData();
+    </script>
+</body>
+</html>
