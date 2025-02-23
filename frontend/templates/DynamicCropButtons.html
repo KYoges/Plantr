@@ -50,7 +50,7 @@
                 const button = document.createElement('button'); // Create a new button element
                 button.textContent = str; // Set the button text
                 button.onclick = () => { // ON BUTTON CLICK TRIGGER A FUNCTION...
-                    alert(`Button clicked: ${str}`); // Action for button click (example: alert)
+                    sendButtonClick(str); // Action for button click (example: alert)
                 };
                 container.appendChild(button); // Append the button to the container
             });
@@ -70,6 +70,24 @@
                 console.error('Error fetching button data:', error);
                 // Fallback to test data in case of an error
                 displayButtons(["Error fetching data", "Button 1", "Button 2"]);
+            }
+        }
+
+        async function sendButtonClick(buttonText) {
+            try {
+                const response = await fetch('http://127.0.0.1:5000/markdown', { // Replace with your API endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ button_text: buttonText }) // Send button text
+                });
+
+                const result = await response.json();
+                alert(`Backend Response: ${result.markdown}`); // Show backend response
+            } catch (error) {
+                console.error('Error sending button click:', error);
+                alert('Error sending button text.');
             }
         }
 
