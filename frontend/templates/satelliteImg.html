@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HighSight Satellite Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; }
+        #map { width: 400px; height: 200px; } /* Set the size of the map
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script>
+        // Latitude and longitude of the desired location
+        const lat = 28.7041; // Replace with your latitude
+        const lon = -150.1025; // Replace with your longitude
+
+        // Initialize Leaflet map
+        const map = L.map('map', {
+            center: [lat, lon], // Center on the specified location
+            zoom: 6, // Adjust zoom level as needed
+            crs: L.CRS.EPSG3857,
+            dragging: false, // Disable dragging
+            scrollWheelZoom: false, // Disable scroll wheel zoom
+            touchZoom: false, // Disable touch zoom
+            doubleClickZoom: false // Disable double-click zoom
+        });
+
+        // HighSight API Key (replace with your actual key)
+        const apiKey = "qQpcDL2ShncUXEv5nhntnmsbROA9NqWt"; // Replace this with your actual API key
+
+        // Satellite imagery layer from HighSight API
+        const satelliteLayer = L.tileLayer(
+            `https://api.highsight.dev/v1/tiles/{z}/{x}/{y}?key=${apiKey}&date=2024/02/22/1500`,
+            {
+                maxZoom: 9,
+                minZoom: 3,
+                crossOrigin: true,
+                attribution: '© <a href="https://highsight.dev">HighSight</a>'
+            }
+        );
+
+        // Add layer to map
+        map.addLayer(satelliteLayer);
+    </script>
+
+</body>
+</html>
