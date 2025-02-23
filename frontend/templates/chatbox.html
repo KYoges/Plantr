@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantr - Grow Smarter</title>
+    <style>
+        #chatbot-container {
+            position: fixed;
+            bottom: 60px;
+            right: 20px;
+            width: 700px;
+            height: 500px;
+            background-color: white;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            transition: transform 0.3s ease-in-out;
+            transform: translateY(100%);
+            display: flex;
+            flex-direction: column;
+        }
+        #chatbot-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #chatbot-messages {
+            padding: 10px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        #chatbot-input {
+            width: calc(100% - 20px);
+            margin: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .show-chatbot {
+            transform: translateY(0) !important;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="chatbot-container">
+        <div id="chatbot-header" onclick="toggleChatbot()">Plantr Assistant</div>
+        <div id="chatbot-messages"></div>
+        <input type="text" id="chatbot-input" placeholder="Type a message...">
+    </div>
+
+    <script>
+        function toggleChatbot() {
+            document.getElementById('chatbot-container').classList.toggle('show-chatbot');
+        }
+        function receiveChatbotResponse(response) {
+            let messages = document.getElementById('chatbot-messages');
+            let message = document.createElement('p');
+            message.textContent = response;
+            messages.appendChild(message);
+            document.getElementById('chatbot-container').classList.add('show-chatbot');
+        }
+    </script>
+</body>
+</html>

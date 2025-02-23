@@ -1,7 +1,9 @@
 from flask import Flask, request, flash, jsonify
 from crop import predict_crop, user_choice
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/predict', methods = ['GET'])
 def predict():
@@ -25,6 +27,7 @@ def choose():
 
     return jsonify(user_choice(location, choice))
     
+                            
 
 
     
