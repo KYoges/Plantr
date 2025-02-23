@@ -8,7 +8,7 @@ body {
     width: 280px;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
 }
-.location-input {
+.longitude, .latitude {
     background-color: #ddd;
     border-radius: 8px;
     padding: 5px 10px;
