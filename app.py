@@ -1,11 +1,13 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for
 from crop import predict_crop, user_choice
 import threading
 import time
 import os
 
 # Initialize Flask app with the correct template folder
-app = Flask(__name__, template_folder=os.path.join(os.getcwd(), 'frontend', 'templates'))
+app = Flask(__name__,
+            template_folder=os.path.join(os.getcwd(), 'frontend', 'templates'),
+            static_folder=os.path.join(os.getcwd(), 'frontend', 'static'))
 
 # This prints the current working directory to confirm we're using the right path
 print("Current working directory:", os.getcwd())
@@ -23,6 +25,18 @@ def start_task():
     thread = threading.Thread(target=generate_data)
     thread.start()
     return jsonify({'status': 'Task started'})
+
+@app.route('/redirect_after_delay')
+def redirect_after_delay():
+    # Simulate a 2-second delay
+    time.sleep(2)
+    # After the delay, redirect to index.html (or the desired route)
+    return redirect(url_for('main_page'))
+
+@app.route('/main_page')
+def main_page():
+    # Render the main page after the delay
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

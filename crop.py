@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify
-from geopy.geocoders import Nominatim, great_circle
+from geopy.geocoders import Nominatim
+from geopy.distance import great_circle
 import pandas as pd
 import numpy as np
 from datetime import datetime
 from geopy.distance import great_circle
-from llm_integration import get_plant_info_llm, make_sch_info
+from llm_api.llm_integration import get_plant_info_llm, make_sch_info
 
 df = pd.read_csv("llm_api/us_crop_species_distribution.csv")
 df2 = pd.read_csv("llm_api/us_crop_species_distribution2.csv")
